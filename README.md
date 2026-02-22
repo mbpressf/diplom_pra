@@ -1,0 +1,106 @@
+# Дипломный проект: учет доходов и расходов с диаграммами
+
+Полноценное fullstack-приложение на FastAPI + Vue 3 для учета финансов, аналитики и визуализации данных.
+
+## Стек
+
+- Backend: Python 3.11+, FastAPI, SQLAlchemy, SQLite, JWT
+- Frontend: Vue 3 (Composition API), Vite, Pinia, Vue Router, TailwindCSS, Chart.js, Axios
+
+## Возможности
+
+- Регистрация и авторизация (JWT)
+- Мультипользовательский режим
+- CRUD транзакций доходов/расходов
+- Категории (создание и редактирование)
+- Фильтр по датам
+- KPI Dashboard:
+  - Общий доход
+  - Общий расход
+  - Баланс
+  - Процент экономии
+- Графики:
+  - Doughnut: распределение по категориям
+  - Line: динамика по месяцам
+- Экспорт в CSV
+- Импорт из CSV
+- Локальное кеширование данных в frontend (localStorage)
+- Темная/светлая тема
+- Анимации переходов, hover-эффекты, skeleton loader
+
+## Структура
+
+- `main.py`
+- `database.py`
+- `models.py`
+- `schemas.py`
+- `auth_utils.py`
+- `routers/`
+  - `auth.py`
+  - `transactions.py`
+  - `categories.py`
+  - `analytics.py`
+- `src/`
+  - `components/`
+  - `views/`
+  - `store/`
+  - `services/`
+  - `router/`
+  - `assets/`
+
+## API
+
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /transactions`
+- `POST /transactions`
+- `DELETE /transactions/{id}`
+- `GET /analytics/summary`
+- `GET /analytics/by-category`
+- `GET /analytics/by-month`
+
+Дополнительно:
+- `GET /categories`
+- `POST /categories`
+- `PUT /categories/{id}`
+- `GET /transactions/export/csv`
+- `POST /transactions/import/csv`
+
+## Пример данных
+
+При первом запуске backend автоматически создается demo-пользователь:
+
+- Email: `demo@example.com`
+- Password: `demo1234`
+
+И несколько категорий/транзакций для демонстрации графиков.
+
+## Запуск проекта
+
+### 1) Backend
+
+```bash
+cp .env.example .env
+python3 -m pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Backend будет доступен на `http://127.0.0.1:8000`.
+
+### 2) Frontend
+
+```bash
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Frontend будет доступен на `http://127.0.0.1:5173`.
+
+## Docker (структура подготовлена)
+
+- `Dockerfile.backend`
+- `Dockerfile.frontend`
+- `docker-compose.yml`
+
+При необходимости можно поднять оба сервиса через Docker Compose.
