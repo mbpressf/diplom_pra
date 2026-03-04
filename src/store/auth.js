@@ -2,6 +2,18 @@ import { defineStore } from 'pinia'
 
 import { authApi } from '../services/finance'
 
+function normalizeAuthError(error, fallback) {
+  const detail = error?.response?.data?.detail
+  const status = error?.response?.status
+  const code = error?.code
+  if (code === 'ERR_NETWORK') return 'Сервер недоступен. Проверьте, что backend запущен на http://127.0.0.1:8000'
+  if (status === 404) return 'API не найден (404). Проверьте адрес backend'
+  if (!detail) return fallback
+  if (detail === 'Email already registered') return 'Email уже зарегистрирован'
+  if (detail === 'Invalid email or password') return 'Неверный email или пароль'
+  return detail
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('finance_token') || '',
@@ -17,7 +29,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = data.access_token
         localStorage.setItem('finance_token', data.access_token)
       } catch (error) {
-        this.error = error?.response?.data?.detail || 'Ошибка авторизации'
+        this.error = normalizeAuthError(error, 'Ошибка авторизации')
         throw error
       } finally {
         this.loading = false
@@ -31,7 +43,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = data.access_token
         localStorage.setItem('finance_token', data.access_token)
       } catch (error) {
-        this.error = error?.response?.data?.detail || 'Ошибка регистрации'
+        this.error = normalizeAuthError(error, 'Ошибка регистрации')
         throw error
       } finally {
         this.loading = false

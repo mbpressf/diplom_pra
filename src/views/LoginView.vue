@@ -17,7 +17,11 @@ const form = reactive({
 async function onSubmit() {
   try {
     await authStore.login(form.email, form.password)
-    await financeStore.bootstrap()
+    try {
+      await financeStore.bootstrap()
+    } catch {
+      // Вход уже успешен; если аналитика временно недоступна, не блокируем переход.
+    }
     router.push('/')
   } catch {
     // Ошибка уже сохраняется в store для отображения.

@@ -5,6 +5,8 @@ import { useFinanceStore } from '../store/finance'
 
 const financeStore = useFinanceStore()
 const editingId = ref(null)
+const statusText = ref('')
+const statusType = ref('') // success | error
 
 const form = reactive({
   name: '',
@@ -31,9 +33,17 @@ const missingCommonCategories = computed(() =>
 
 async function createCategory() {
   if (!form.name.trim()) return
-  await financeStore.addCategory({ name: form.name, color: form.color })
-  form.name = ''
-  form.color = '#10B981'
+  statusText.value = ''
+  try {
+    await financeStore.addCategory({ name: form.name, color: form.color })
+    form.name = ''
+    form.color = '#10B981'
+    statusType.value = 'success'
+    statusText.value = 'Категория успешно создана'
+  } catch (error) {
+    statusType.value = 'error'
+    statusText.value = error?.response?.data?.detail || 'Не удалось создать категорию'
+  }
 }
 
 function startEdit(item) {
@@ -44,10 +54,18 @@ function startEdit(item) {
 
 async function saveEdit() {
   if (!editingId.value) return
-  await financeStore.updateCategory(editingId.value, { name: form.name, color: form.color })
-  editingId.value = null
-  form.name = ''
-  form.color = '#10B981'
+  statusText.value = ''
+  try {
+    await financeStore.updateCategory(editingId.value, { name: form.name, color: form.color })
+    editingId.value = null
+    form.name = ''
+    form.color = '#10B981'
+    statusType.value = 'success'
+    statusText.value = 'Категория сохранена'
+  } catch (error) {
+    statusType.value = 'error'
+    statusText.value = error?.response?.data?.detail || 'Не удалось сохранить категорию'
+  }
 }
 
 async function addCommonCategory(item) {
@@ -82,6 +100,13 @@ async function addAllCommonCategories() {
           {{ editingId ? 'Сохранить' : 'Создать' }}
         </button>
       </div>
+      <p
+        v-if="statusText"
+        class="mt-3 text-sm"
+        :class="statusType === 'error' ? 'text-expense' : 'text-income'"
+      >
+        {{ statusText }}
+      </p>
     </article>
 
     <article class="glass rounded-xl2 p-4 shadow-card">

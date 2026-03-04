@@ -21,7 +21,20 @@ def list_categories(db: Session = Depends(get_db), current_user: User = Depends(
 
 @router.post("", response_model=CategoryOut, status_code=status.HTTP_201_CREATED)
 def create_category(payload: CategoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    category = Category(name=payload.name.strip(), color=payload.color, user_id=current_user.id)
+    normalized_name = payload.name.strip()
+    existing = (
+        db.query(Category)
+        .filter(Category.user_id == current_user.id)
+        .all()
+    )
+    duplicate = next(
+        (item for item in existing if item.name.strip().casefold() == normalized_name.casefold()),
+        None,
+    )
+    if duplicate:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Категория с таким названием уже существует")
+
+    category = Category(name=normalized_name, color=payload.color, user_id=current_user.id)
     db.add(category)
     db.commit()
     db.refresh(category)
@@ -44,7 +57,19 @@ def update_category(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
     if payload.name is not None:
-        category.name = payload.name.strip()
+        normalized_name = payload.name.strip()
+        sibling_categories = (
+            db.query(Category)
+            .filter(Category.user_id == current_user.id, Category.id != category.id)
+            .all()
+        )
+        duplicate = next(
+            (item for item in sibling_categories if item.name.strip().casefold() == normalized_name.casefold()),
+            None,
+        )
+        if duplicate:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Категория с таким названием уже существует")
+        category.name = normalized_name
     if payload.color is not None:
         category.color = payload.color
 

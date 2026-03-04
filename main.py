@@ -26,6 +26,7 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+    deduplicate_categories()
     seed_example_data()
 
 
@@ -67,6 +68,38 @@ def seed_example_data():
             Transaction(amount=76, type="expense", category_id=food.id, date=today - timedelta(days=2), description="Кафе", user_id=demo_user.id),
         ]
         db.add_all(samples)
+        db.commit()
+    finally:
+        db.close()
+
+
+def deduplicate_categories():
+    """Сливает дубли категорий (по имени в рамках user_id) в одну категорию."""
+    db = SessionLocal()
+    try:
+        users = db.query(User).all()
+        for user in users:
+            categories = (
+                db.query(Category)
+                .filter(Category.user_id == user.id)
+                .order_by(Category.id.asc())
+                .all()
+            )
+            by_name = {}
+            for category in categories:
+                key = category.name.strip().lower()
+                if key not in by_name:
+                    by_name[key] = category
+                    continue
+
+                keeper = by_name[key]
+                # Переносим транзакции на сохраненную категорию.
+                (
+                    db.query(Transaction)
+                    .filter(Transaction.category_id == category.id)
+                    .update({Transaction.category_id: keeper.id}, synchronize_session=False)
+                )
+                db.delete(category)
         db.commit()
     finally:
         db.close()

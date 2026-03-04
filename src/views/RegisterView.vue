@@ -17,7 +17,11 @@ const form = reactive({
 async function onSubmit() {
   try {
     await authStore.register(form.email, form.password)
-    await financeStore.bootstrap()
+    try {
+      await financeStore.bootstrap()
+    } catch {
+      // Регистрация уже прошла успешно; если аналитика временно недоступна, не блокируем вход.
+    }
     router.push('/')
   } catch {
     // Ошибка уже хранится в store.
