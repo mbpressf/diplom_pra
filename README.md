@@ -101,6 +101,64 @@ Frontend будет доступен на `http://127.0.0.1:5173`.
 
 - `Dockerfile.backend`
 - `Dockerfile.frontend`
+- `Dockerfile.frontend.prod`
 - `docker-compose.yml`
+- `docker-compose.home-server.yml`
+- `deploy-home.sh`
+- `update-home.sh`
 
 При необходимости можно поднять оба сервиса через Docker Compose.
+
+## Деплой на домашний сервер через Traefik
+
+Этот проект подготовлен под схему:
+
+- `https://домен` -> фронтенд
+- `https://домен/api` -> FastAPI backend
+
+### Что использовать
+
+- `docker-compose.home-server.yml`
+- `.env.home-server.example`
+- `deploy-home.sh`
+- `update-home.sh`
+
+### Первый запуск на домашнем сервере
+
+```bash
+cd ~/sites/finpotok
+cp .env.home-server.example .env.home-server
+```
+
+Заполните в `.env.home-server`:
+
+- `APP_DOMAIN`
+- `JWT_SECRET`
+- `CORS_ORIGINS`
+
+Потом:
+
+```bash
+chmod +x deploy-home.sh update-home.sh
+./deploy-home.sh
+```
+
+### Обновление после изменений
+
+Если проект уже лежит на сервере как git-репозиторий:
+
+```bash
+./update-home.sh
+```
+
+По умолчанию обновляется ветка `main`. Если нужна другая:
+
+```bash
+BRANCH=main ./update-home.sh
+```
+
+### Что важно для production
+
+- SQLite хранится в `./data` рядом с compose-файлом
+- frontend в production использует `/api`
+- backend автоматически работает через `DATABASE_URL` из env

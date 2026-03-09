@@ -14,6 +14,7 @@ class User(Base):
 
     categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
+    vault = relationship("SavingsVault", back_populates="user", cascade="all, delete-orphan", uselist=False)
 
 
 class Category(Base):
@@ -42,3 +43,17 @@ class Transaction(Base):
 
     category = relationship("Category", back_populates="transactions")
     user = relationship("User", back_populates="transactions")
+
+
+class SavingsVault(Base):
+    __tablename__ = "savings_vaults"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, default="Финансовый сейф")
+    balance = Column(Float, nullable=False, default=0)
+    target_amount = Column(Float, nullable=False, default=0)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="vault")

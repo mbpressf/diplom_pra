@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { useAuthStore } from '../store/auth'
 import { useFinanceStore } from '../store/finance'
@@ -9,15 +9,28 @@ import { useUiStore } from '../store/ui'
 const authStore = useAuthStore()
 const financeStore = useFinanceStore()
 const uiStore = useUiStore()
+const route = useRoute()
 const router = useRouter()
+const menuOpen = ref(false)
 
 const nav = [
-  { to: '/', label: 'Дашборд' },
-  { to: '/transactions', label: 'Транзакции' },
+  { to: '/', label: 'Обзор' },
+  { to: '/transactions', label: 'Операции' },
   { to: '/categories', label: 'Категории' },
 ]
 
 const themeLabel = computed(() => (uiStore.theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'))
+
+watch(
+  () => route.fullPath,
+  () => {
+    menuOpen.value = false
+  },
+)
+
+function isActive(path) {
+  return route.path === path
+}
 
 function logout() {
   authStore.logout()
@@ -27,33 +40,79 @@ function logout() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-10 border-b border-white/40 bg-white/60 py-3 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/65">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-      <RouterLink to="/" class="text-lg font-bold tracking-tight text-brand-700 dark:text-brand-100">ФинПоток</RouterLink>
-      <nav class="flex items-center gap-2">
+  <header class="sticky top-0 z-40 border-b border-white/10 bg-[linear-gradient(135deg,rgba(5,10,22,0.92),rgba(7,20,38,0.78))] py-2 shadow-[0_10px_60px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <RouterLink to="/" class="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/8 px-3 py-2 text-sm font-semibold tracking-[0.16em] text-white transition hover:bg-white/12">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,#2563eb,#06b6d4,#10b981)] text-xs font-bold text-white shadow-[0_10px_25px_rgba(14,165,233,0.35)]">Ф</span>
+        ФинПоток
+      </RouterLink>
+
+      <nav class="hidden items-center gap-2 md:flex">
         <RouterLink
           v-for="item in nav"
           :key="item.to"
           :to="item.to"
-          class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-brand-100 hover:text-brand-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          class="rounded-full px-4 py-2 text-sm font-medium transition"
+          :class="isActive(item.to) ? 'bg-white text-slate-950 shadow-[0_8px_20px_rgba(255,255,255,0.18)]' : 'text-slate-200/85 hover:bg-white/10 hover:text-white'"
         >
           {{ item.label }}
         </RouterLink>
       </nav>
-      <div class="flex items-center gap-2">
+
+      <div class="hidden items-center gap-2 md:flex">
         <button
-          class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium transition hover:-translate-y-0.5 hover:bg-white dark:border-slate-600 dark:hover:bg-slate-800"
+          class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:-translate-y-0.5 hover:bg-white/10"
           @click="uiStore.toggleTheme"
         >
           {{ themeLabel }}
         </button>
         <button
-          class="rounded-lg bg-brand-700 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-brand-500"
+          class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-slate-100"
           @click="logout"
         >
           Выйти
         </button>
       </div>
+
+      <div class="flex items-center gap-2 md:hidden">
+        <button
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10 text-white transition hover:bg-white/15"
+          @click="uiStore.toggleTheme"
+        >
+          <span class="text-lg">{{ uiStore.theme === 'dark' ? '☀' : '☾' }}</span>
+        </button>
+        <button
+          class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10 text-white transition hover:bg-white/15"
+          @click="menuOpen = !menuOpen"
+        >
+          <span class="sr-only">Открыть меню</span>
+          <span class="absolute h-0.5 w-5 rounded-full bg-current transition" :class="menuOpen ? 'rotate-45' : '-translate-y-1.5'"></span>
+          <span class="absolute h-0.5 w-5 rounded-full bg-current transition" :class="menuOpen ? 'opacity-0' : 'opacity-100'"></span>
+          <span class="absolute h-0.5 w-5 rounded-full bg-current transition" :class="menuOpen ? '-rotate-45' : 'translate-y-1.5'"></span>
+        </button>
+      </div>
     </div>
+
+    <Transition name="route-fade">
+      <div v-if="menuOpen" class="md:hidden">
+        <div class="fixed inset-0 z-10 bg-slate-950/55 backdrop-blur-sm" @click="menuOpen = false"></div>
+        <div class="absolute right-4 top-[72px] z-20 w-[min(280px,calc(100vw-2rem))] rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(2,6,23,0.96),rgba(7,15,28,0.92))] p-4 shadow-2xl backdrop-blur-2xl">
+          <div class="grid gap-2">
+            <button
+              class="rounded-2xl border border-white/12 px-4 py-3 text-left text-sm font-medium text-slate-100 transition hover:bg-white/10"
+              @click="uiStore.toggleTheme"
+            >
+              {{ themeLabel }}
+            </button>
+            <button
+              class="rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+              @click="logout"
+            >
+              Выйти
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </header>
 </template>

@@ -12,6 +12,8 @@ import {
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 
+import { useUiStore } from '../store/ui'
+
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler)
 
 const props = defineProps({
@@ -20,6 +22,8 @@ const props = defineProps({
     required: true,
   },
 })
+
+const uiStore = useUiStore()
 
 const chartData = computed(() => ({
   labels: props.items.map((i) => i.month),
@@ -43,25 +47,48 @@ const chartData = computed(() => ({
   ],
 }))
 
-const options = {
-  responsive: true,
-  maintainAspectRatio: false,
-  interaction: {
-    mode: 'index',
-    intersect: false,
-  },
-  plugins: {
-    legend: {
-      labels: {
-        color: '#334155',
+const options = computed(() => {
+  const textColor = uiStore.theme === 'dark' ? '#e2e8f0' : '#334155'
+  const gridColor = uiStore.theme === 'dark' ? 'rgba(148, 163, 184, 0.16)' : 'rgba(148, 163, 184, 0.25)'
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: textColor,
+        },
       },
     },
-  },
-  animation: {
-    duration: 950,
-    easing: 'easeOutCubic',
-  },
-}
+    scales: {
+      x: {
+        ticks: {
+          color: textColor,
+        },
+        grid: {
+          color: gridColor,
+        },
+      },
+      y: {
+        ticks: {
+          color: textColor,
+        },
+        grid: {
+          color: gridColor,
+        },
+      },
+    },
+    animation: {
+      duration: 950,
+      easing: 'easeOutCubic',
+    },
+  }
+})
 </script>
 
 <template>

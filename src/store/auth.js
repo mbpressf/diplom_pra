@@ -8,6 +8,12 @@ function normalizeAuthError(error, fallback) {
   const code = error?.code
   if (code === 'ERR_NETWORK') return 'Сервер недоступен. Проверьте, что backend запущен на http://127.0.0.1:8000'
   if (status === 404) return 'API не найден (404). Проверьте адрес backend'
+  if (status === 422) {
+    const first = Array.isArray(detail) ? detail[0] : null
+    if (first?.loc?.includes('email')) return 'Введите корректный email'
+    if (first?.loc?.includes('password')) return 'Пароль должен быть не короче 8 символов'
+    return 'Проверьте корректность введённых данных'
+  }
   if (!detail) return fallback
   if (detail === 'Email already registered') return 'Email уже зарегистрирован'
   if (detail === 'Invalid email or password') return 'Неверный email или пароль'

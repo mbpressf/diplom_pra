@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from auth_utils import get_password_hash
 from database import Base, SessionLocal, engine
-from models import Category, Transaction, User
-from routers import analytics, auth, categories, transactions
+from models import Category, SavingsVault, Transaction, User
+from routers import analytics, auth, categories, transactions, vault
 
 app = FastAPI(title="Income & Expense Tracker API")
 
@@ -26,8 +26,9 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
-    deduplicate_categories()
     seed_example_data()
+    ensure_default_vaults()
+    deduplicate_categories()
 
 
 @app.get("/")
@@ -39,6 +40,7 @@ app.include_router(auth.router)
 app.include_router(categories.router)
 app.include_router(transactions.router)
 app.include_router(analytics.router)
+app.include_router(vault.router)
 
 
 def seed_example_data():
@@ -68,6 +70,21 @@ def seed_example_data():
             Transaction(amount=76, type="expense", category_id=food.id, date=today - timedelta(days=2), description="Кафе", user_id=demo_user.id),
         ]
         db.add_all(samples)
+        db.add(SavingsVault(name="Финансовый сейф", balance=650, target_amount=3000, user_id=demo_user.id))
+        db.commit()
+    finally:
+        db.close()
+
+
+def ensure_default_vaults():
+    """Создает сейф для каждого пользователя, у которого его еще нет."""
+    db = SessionLocal()
+    try:
+        users = db.query(User).all()
+        for user in users:
+            existing = db.query(SavingsVault).filter(SavingsVault.user_id == user.id).first()
+            if not existing:
+                db.add(SavingsVault(name="Финансовый сейф", balance=0, target_amount=0, user_id=user.id))
         db.commit()
     finally:
         db.close()
@@ -87,7 +104,7 @@ def deduplicate_categories():
             )
             by_name = {}
             for category in categories:
-                key = category.name.strip().lower()
+                key = category.name.strip().casefold()
                 if key not in by_name:
                     by_name[key] = category
                     continue

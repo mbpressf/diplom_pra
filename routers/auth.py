@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from auth_utils import create_access_token, get_password_hash, verify_password
 from database import get_db
-from models import User
+from models import SavingsVault, User
 from schemas import Token, UserCreate, UserLogin
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -19,6 +19,9 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    db.add(SavingsVault(user_id=user.id, name="Финансовый сейф", balance=0, target_amount=0))
+    db.commit()
 
     token = create_access_token(subject=str(user.id))
     return Token(access_token=token)

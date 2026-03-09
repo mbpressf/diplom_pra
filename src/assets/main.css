@@ -1,17 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: light;
+  --app-bg: #eef4fb;
+  --app-bg-secondary: #d8e6f7;
+  --app-text: #0f172a;
+  --app-muted: #475569;
+  --panel-bg: rgba(255, 255, 255, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.48);
 }
 
 html.dark {
   color-scheme: dark;
+  --app-bg: #050b16;
+  --app-bg-secondary: #09162b;
+  --app-text: #e2e8f0;
+  --app-muted: #94a3b8;
+  --panel-bg: rgba(7, 15, 28, 0.62);
+  --panel-border: rgba(148, 163, 184, 0.16);
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 antialiased dark:text-slate-100;
+  @apply antialiased;
+  background: var(--app-bg);
+  color: var(--app-text);
   margin: 0;
   min-height: 100vh;
   font-family: "Manrope", "Segoe UI", sans-serif;
@@ -21,42 +37,285 @@ body {
   min-height: 100vh;
 }
 
+h1,
+h2,
+h3,
+.display-type {
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+}
+
 .app-bg {
+  position: relative;
   background:
-    radial-gradient(circle at 10% 10%, rgba(30, 58, 138, 0.20), transparent 35%),
-    radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.18), transparent 30%),
-    linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    radial-gradient(circle at 8% 10%, rgba(29, 78, 216, 0.22), transparent 28%),
+    radial-gradient(circle at 82% 12%, rgba(16, 185, 129, 0.16), transparent 24%),
+    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.09), transparent 38%),
+    linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-secondary) 100%);
 }
 
 .dark .app-bg {
   background:
-    radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.22), transparent 35%),
-    radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.18), transparent 30%),
-    linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    radial-gradient(circle at 9% 10%, rgba(37, 99, 235, 0.28), transparent 26%),
+    radial-gradient(circle at 83% 12%, rgba(16, 185, 129, 0.15), transparent 22%),
+    radial-gradient(circle at 52% 0%, rgba(14, 165, 233, 0.12), transparent 34%),
+    linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-secondary) 100%);
 }
 
 .glass {
-  @apply bg-white/65 dark:bg-slate-900/55 backdrop-blur-xl border border-white/40 dark:border-slate-700/50;
+  background: var(--panel-bg);
+  border-color: var(--panel-border);
+  color: var(--app-text);
+  @apply backdrop-blur-2xl;
 }
 
 /* Глобальная читабельность элементов формы в темной теме. */
 input,
 select,
 textarea {
-  @apply text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400;
+  color: var(--app-text);
+  @apply placeholder:text-slate-500 dark:placeholder:text-slate-400;
 }
 
 th {
   @apply text-slate-700 dark:text-slate-200;
 }
 
+label,
+td,
+span,
+p {
+  word-break: break-word;
+}
+
+.ambient-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(14px);
+  opacity: 0.45;
+  animation: orbFloat 18s ease-in-out infinite;
+}
+
+.ambient-orb-a {
+  top: 72px;
+  left: -80px;
+  height: 300px;
+  width: 300px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.28) 0%, rgba(59, 130, 246, 0) 70%);
+}
+
+.ambient-orb-b {
+  right: -60px;
+  top: 20%;
+  height: 340px;
+  width: 340px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0) 72%);
+  animation-duration: 22s;
+}
+
+.ambient-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent);
+  opacity: 0.55;
+}
+
+.dashboard-hero {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.46)),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.04), rgba(16, 185, 129, 0.02));
+}
+
+.dark .dashboard-hero {
+  background:
+    linear-gradient(135deg, rgba(10, 18, 34, 0.9), rgba(6, 15, 28, 0.72)),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.08), rgba(16, 185, 129, 0.04));
+}
+
+.vault-shell {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.52)),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.05), rgba(16, 185, 129, 0.03));
+}
+
+.dark .vault-shell {
+  background:
+    linear-gradient(135deg, rgba(8, 18, 34, 0.92), rgba(5, 12, 24, 0.8)),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.08), rgba(16, 185, 129, 0.05));
+}
+
+.vault-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(28px);
+  opacity: 0.4;
+}
+
+.vault-glow-a {
+  top: -80px;
+  right: -30px;
+  height: 220px;
+  width: 220px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.22), rgba(37, 99, 235, 0));
+}
+
+.vault-glow-b {
+  bottom: -120px;
+  left: -40px;
+  height: 240px;
+  width: 240px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.18), rgba(16, 185, 129, 0));
+}
+
+.vault-metric {
+  min-width: 0;
+  flex: 1 1 0%;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.dark .vault-metric {
+  background: rgba(7, 15, 28, 0.46);
+}
+
+.vault-metric-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.vault-metric strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.45rem;
+  line-height: 1.2;
+  color: var(--app-text);
+}
+
+.vault-metric-safe {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.vault-metric-free {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.16);
+}
+
+.vault-card-stat {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.62);
+  padding: 16px;
+}
+
+.dark .vault-card-stat {
+  background: rgba(7, 15, 28, 0.44);
+}
+
+.vault-card-stat-safe {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.18);
+}
+
+.vault-card-stat-free {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.16);
+}
+
+.vault-card-stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.vault-card-stat-value {
+  margin-top: 12px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.vault-card-stat-note {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.vault-action-panel {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.58);
+  padding: 18px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.dark .vault-action-panel {
+  background: rgba(7, 15, 28, 0.48);
+}
+
 .route-fade-enter-active,
 .route-fade-leave-active {
-  transition: all 0.32s ease;
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .route-fade-enter-from,
 .route-fade-leave-to {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(18px) scale(0.985);
+}
+
+@keyframes orbFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -20px, 0) scale(1.06);
+  }
+}
+
+@media (max-width: 768px) {
+  .ambient-orb-a {
+    height: 220px;
+    width: 220px;
+  }
+
+  .ambient-orb-b {
+    height: 240px;
+    width: 240px;
+  }
+
+  .vault-card-stat-value,
+  .vault-metric strong {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .vault-metric {
+    padding: 10px 10px;
+  }
+
+  .vault-metric-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+  }
+
+  .vault-metric strong {
+    margin-top: 6px;
+    font-size: 0.98rem;
+    white-space: nowrap;
+  }
 }

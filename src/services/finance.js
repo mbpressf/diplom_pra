@@ -24,3 +24,10 @@ export const analyticsApi = {
   byCategory: (params) => api.get('/analytics/by-category', { params }),
   byMonth: (params) => api.get('/analytics/by-month', { params }),
 }
+
+export const vaultApi = {
+  get: () => api.get('/vault'),
+  update: (payload) => api.put('/vault', payload),
+  deposit: (payload) => api.post('/vault/deposit', payload),
+  withdraw: (payload) => api.post('/vault/withdraw', payload),
+}

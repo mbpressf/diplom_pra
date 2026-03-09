@@ -8,6 +8,8 @@ import {
 import { computed } from 'vue'
 import { Doughnut } from 'vue-chartjs'
 
+import { useUiStore } from '../store/ui'
+
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 const props = defineProps({
@@ -16,6 +18,8 @@ const props = defineProps({
     required: true,
   },
 })
+
+const uiStore = useUiStore()
 
 const chartData = computed(() => ({
   labels: props.items.map((i) => i.category),
@@ -29,13 +33,14 @@ const chartData = computed(() => ({
   ],
 }))
 
-const options = {
+const options = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
+  cutout: '66%',
   plugins: {
     legend: {
       labels: {
-        color: '#334155',
+        color: uiStore.theme === 'dark' ? '#e2e8f0' : '#334155',
       },
     },
   },
@@ -43,7 +48,7 @@ const options = {
     duration: 900,
     easing: 'easeOutQuart',
   },
-}
+}))
 </script>
 
 <template>

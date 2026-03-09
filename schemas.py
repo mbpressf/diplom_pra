@@ -1,17 +1,27 @@
 from datetime import date
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class UserCreate(BaseModel):
-    email: str
-    password: str = Field(min_length=6, max_length=128)
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: EmailStr) -> str:
+        return value.strip().lower()
 
 
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: EmailStr) -> str:
+        return value.strip().lower()
 
 
 class Token(BaseModel):
@@ -82,3 +92,24 @@ class MonthAnalyticsItem(BaseModel):
     month: str
     income: float
     expense: float
+
+
+class VaultUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=64)
+    target_amount: Optional[float] = Field(default=None, ge=0)
+
+
+class VaultTransfer(BaseModel):
+    amount: float = Field(gt=0)
+
+
+class VaultOut(BaseModel):
+    id: int
+    name: str
+    balance: float
+    target_amount: float
+    net_balance: float
+    available_to_spend: float
+    progress_percent: float
+
+    model_config = ConfigDict(from_attributes=True)

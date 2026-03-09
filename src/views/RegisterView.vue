@@ -35,7 +35,7 @@ async function onSubmit() {
 
     <form class="mt-6 space-y-3" @submit.prevent="onSubmit">
       <input v-model="form.email" type="email" required placeholder="Электронная почта" class="w-full rounded-lg border border-softgray bg-white px-3 py-2 dark:bg-slate-800" />
-      <input v-model="form.password" type="password" minlength="6" required placeholder="Пароль" class="w-full rounded-lg border border-softgray bg-white px-3 py-2 dark:bg-slate-800" />
+      <input v-model="form.password" type="password" minlength="8" required placeholder="Пароль (минимум 8 символов)" class="w-full rounded-lg border border-softgray bg-white px-3 py-2 dark:bg-slate-800" />
       <p v-if="authStore.error" class="text-sm text-expense">{{ authStore.error }}</p>
       <button :disabled="authStore.loading" class="w-full rounded-lg bg-accent px-4 py-2 font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-60">Зарегистрироваться</button>
     </form>
