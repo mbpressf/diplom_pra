@@ -1,6 +1,7 @@
 <script setup>
 import { computed, reactive, watch } from 'vue'
 
+import { useLocale } from '../composables/useLocale'
 import { useFinanceStore } from '../store/finance'
 
 const props = defineProps({
@@ -11,6 +12,7 @@ const props = defineProps({
 })
 
 const financeStore = useFinanceStore()
+const { t, money, displayMoney, fromBase, toBase, uiStore } = useLocale()
 
 const transferForm = reactive({
   amount: '',
@@ -29,11 +31,13 @@ const status = reactive({
 
 const quickAmounts = [500, 1000, 2500, 5000]
 
+const displayName = computed(() => props.vault.name || t('vaultFallbackName'))
+
 watch(
-  () => props.vault,
-  (value) => {
-    settingsForm.name = value?.name || 'Финансовый сейф'
-    settingsForm.target_amount = value?.target_amount ? String(value.target_amount) : ''
+  [() => props.vault, () => uiStore.locale],
+  ([value]) => {
+    settingsForm.name = value?.name || t('vaultFallbackName')
+    settingsForm.target_amount = value?.target_amount ? String(fromBase(value.target_amount)) : ''
   },
   { immediate: true, deep: true },
 )
@@ -48,20 +52,12 @@ const availabilityClass = computed(() =>
 const equationText = computed(() =>
   `${money(props.vault.balance)} + ${money(props.vault.available_to_spend)} = ${money(props.vault.net_balance)}`,
 )
-const modeTitle = computed(() => (isDepositMode.value ? 'Отложить деньги в сейф' : 'Вернуть деньги из сейфа'))
+const modeTitle = computed(() => (isDepositMode.value ? t('vaultModeDepositTitle') : t('vaultModeWithdrawTitle')))
 const modeHint = computed(() =>
   isDepositMode.value
-    ? 'Переводит часть свободных денег в накопления. Общий капитал не меняется.'
-    : 'Возвращает часть накоплений в свободный остаток для трат. Общий капитал не меняется.',
+    ? t('vaultModeDepositHint')
+    : t('vaultModeWithdrawHint'),
 )
-
-function money(value) {
-  return new Intl.NumberFormat('ru-RU', {
-    style: 'currency',
-    currency: 'RUB',
-    maximumFractionDigits: 2,
-  }).format(value || 0)
-}
 
 function setQuickAmount(amount) {
   transferForm.amount = String(amount)
@@ -69,13 +65,13 @@ function setQuickAmount(amount) {
 
 function normalizeVaultError(error, fallback) {
   if (error?.response?.status === 401) {
-    return 'Сессия истекла. Войдите в аккаунт заново.'
+    return t('vaultSessionExpired')
   }
   return error?.response?.data?.detail || fallback
 }
 
 async function submitTransfer() {
-  const amount = Number(transferForm.amount)
+  const amount = toBase(Number(transferForm.amount))
   if (!amount) return
 
   status.type = ''
@@ -85,16 +81,16 @@ async function submitTransfer() {
     if (isDepositMode.value) {
       await financeStore.depositToVault(amount)
       status.type = 'success'
-      status.text = 'Деньги отправлены в накопления'
+      status.text = t('vaultSuccessDeposit')
     } else {
       await financeStore.withdrawFromVault(amount)
       status.type = 'success'
-      status.text = 'Деньги вернулись в свободный остаток'
+      status.text = t('vaultSuccessWithdraw')
     }
     transferForm.amount = ''
   } catch (error) {
     status.type = 'error'
-    status.text = normalizeVaultError(error, 'Операция с сейфом не выполнена')
+    status.text = normalizeVaultError(error, t('vaultErrorAction'))
   }
 }
 
@@ -104,14 +100,14 @@ async function saveSettings() {
 
   try {
     await financeStore.updateVault({
-      name: settingsForm.name.trim() || 'Финансовый сейф',
-      target_amount: Number(settingsForm.target_amount || 0),
+      name: settingsForm.name.trim() || t('vaultFallbackName'),
+      target_amount: toBase(Number(settingsForm.target_amount || 0)),
     })
     status.type = 'success'
-    status.text = 'Настройки сейфа сохранены'
+    status.text = t('vaultSuccessSave')
   } catch (error) {
     status.type = 'error'
-    status.text = normalizeVaultError(error, 'Не удалось сохранить настройки сейфа')
+    status.text = normalizeVaultError(error, t('vaultErrorSave'))
   }
 }
 </script>
@@ -124,43 +120,41 @@ async function saveSettings() {
     <div class="relative z-[1] grid gap-5 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
       <div class="space-y-4">
         <div class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-300">
-          Накопления
+          {{ t('vaultBadge') }}
         </div>
 
         <div class="space-y-2.5">
           <h2 class="display-type text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-50 sm:text-3xl">
-            {{ props.vault.name }}
+            {{ displayName }}
           </h2>
           <p class="max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Здесь виден не только баланс сейфа, но и логика денег целиком:
-            <span class="font-semibold text-slate-900 dark:text-slate-100">общий капитал = в сейфе + свободно сейчас</span>.
-            То есть сумма накоплений и суммы, которую можно тратить, всегда складываются в общий капитал.
+            {{ t('vaultDescription') }}
           </p>
         </div>
 
         <div class="rounded-[26px] border border-white/15 bg-[linear-gradient(135deg,rgba(255,255,255,0.78),rgba(255,255,255,0.46))] p-3.5 dark:bg-[linear-gradient(135deg,rgba(6,15,29,0.78),rgba(10,20,36,0.52))] sm:p-4">
-          <p class="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Как считать деньги</p>
+          <p class="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{{ t('vaultHowToCount') }}</p>
           <div class="mt-3 grid grid-cols-3 gap-2.5 lg:flex lg:flex-row lg:items-center">
             <div class="vault-metric vault-metric-total">
               <span class="vault-metric-label">
-                <span class="sm:hidden">Итого</span>
-                <span class="hidden sm:inline">Общий капитал</span>
+                <span class="sm:hidden">{{ t('vaultTotalShort') }}</span>
+                <span class="hidden sm:inline">{{ t('vaultTotal') }}</span>
               </span>
               <strong>{{ money(props.vault.net_balance) }}</strong>
             </div>
             <div class="hidden text-2xl font-light text-slate-400 lg:block">=</div>
             <div class="vault-metric vault-metric-safe">
               <span class="vault-metric-label">
-                <span class="sm:hidden">Сейф</span>
-                <span class="hidden sm:inline">В сейфе</span>
+                <span class="sm:hidden">{{ t('vaultInSafeShort') }}</span>
+                <span class="hidden sm:inline">{{ t('vaultInSafe') }}</span>
               </span>
               <strong>{{ money(props.vault.balance) }}</strong>
             </div>
             <div class="hidden text-2xl font-light text-slate-400 lg:block">+</div>
             <div class="vault-metric vault-metric-free">
               <span class="vault-metric-label">
-                <span class="sm:hidden">Трата</span>
-                <span class="hidden sm:inline">Свободно сейчас</span>
+                <span class="sm:hidden">{{ t('vaultFreeShort') }}</span>
+                <span class="hidden sm:inline">{{ t('vaultFree') }}</span>
               </span>
               <strong :class="availabilityClass">{{ money(props.vault.available_to_spend) }}</strong>
             </div>
@@ -171,9 +165,9 @@ async function saveSettings() {
         <div class="rounded-[26px] border border-white/15 bg-slate-950/5 p-4 dark:bg-white/5">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Цель накоплений</p>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ t('vaultGoalTitle') }}</p>
               <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                {{ props.vault.target_amount > 0 ? money(props.vault.target_amount) : 'Пока цель не задана' }}
+                {{ props.vault.target_amount > 0 ? money(props.vault.target_amount) : t('vaultGoalEmpty') }}
               </p>
             </div>
             <p class="text-lg font-semibold text-slate-700 dark:text-slate-200">{{ props.vault.progress_percent }}%</p>
@@ -193,7 +187,7 @@ async function saveSettings() {
               :class="isDepositMode ? 'bg-[linear-gradient(90deg,#1d4ed8,#10b981)] text-white shadow-[0_12px_30px_rgba(29,78,216,0.28)]' : 'text-slate-500 dark:text-slate-300'"
               @click="transferForm.mode = 'deposit'"
             >
-              В сейф
+              {{ t('vaultToSafe') }}
             </button>
             <button
               type="button"
@@ -201,7 +195,7 @@ async function saveSettings() {
               :class="!isDepositMode ? 'bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)] dark:bg-white dark:text-slate-950' : 'text-slate-500 dark:text-slate-300'"
               @click="transferForm.mode = 'withdraw'"
             >
-              Из сейфа
+              {{ t('vaultFromSafe') }}
             </button>
           </div>
 
@@ -218,7 +212,7 @@ async function saveSettings() {
               class="rounded-full border border-white/15 bg-white/65 px-3 py-2 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:bg-white dark:bg-slate-950/45 dark:text-slate-200 dark:hover:bg-slate-900"
               @click="setQuickAmount(amount)"
             >
-              {{ money(amount) }}
+              {{ displayMoney(amount) }}
             </button>
           </div>
 
@@ -228,7 +222,7 @@ async function saveSettings() {
               type="number"
               min="0"
               step="0.01"
-              placeholder="Введите сумму перевода"
+              :placeholder="t('vaultTransferPlaceholder')"
               class="rounded-[20px] border border-white/15 bg-white/80 px-4 py-3.5 text-base dark:bg-slate-950/45"
             />
             <button
@@ -236,16 +230,16 @@ async function saveSettings() {
               class="rounded-[20px] bg-[linear-gradient(90deg,#1d4ed8,#10b981)] px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(14,165,233,0.2)]"
               @click="submitTransfer"
             >
-              {{ isDepositMode ? 'Отложить' : 'Вернуть' }}
+              {{ isDepositMode ? t('vaultDepositButton') : t('vaultWithdrawButton') }}
             </button>
           </div>
         </section>
 
         <section class="vault-action-panel">
           <div>
-            <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-50">Настройки сейфа</h3>
+            <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-50">{{ t('vaultSettingsTitle') }}</h3>
             <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Назовите накопительную цель так, как вам понятно: например «Подушка безопасности» или «На MacBook».
+              {{ t('vaultSettingsText') }}
             </p>
           </div>
 
@@ -254,7 +248,7 @@ async function saveSettings() {
               v-model="settingsForm.name"
               type="text"
               maxlength="64"
-              placeholder="Название сейфа"
+              :placeholder="t('vaultNamePlaceholder')"
               class="rounded-[20px] border border-white/15 bg-white/80 px-4 py-3.5 dark:bg-slate-950/45"
             />
             <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
@@ -263,7 +257,7 @@ async function saveSettings() {
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="Например: 100000"
+                :placeholder="t('vaultTargetPlaceholder')"
                 class="rounded-[20px] border border-white/15 bg-white/80 px-4 py-3.5 dark:bg-slate-950/45"
               />
               <button
@@ -271,7 +265,7 @@ async function saveSettings() {
                 class="rounded-[20px] border border-white/15 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-white dark:text-slate-100 dark:hover:bg-slate-800"
                 @click="saveSettings"
               >
-                Сохранить
+                {{ t('save') }}
               </button>
             </div>
           </div>

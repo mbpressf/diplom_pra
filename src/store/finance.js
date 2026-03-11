@@ -25,7 +25,7 @@ export const useFinanceStore = defineStore('finance', {
     byMonth: [],
     vault: {
       id: null,
-      name: 'Финансовый сейф',
+      name: '',
       balance: 0,
       target_amount: 0,
       net_balance: 0,
@@ -168,7 +168,7 @@ export const useFinanceStore = defineStore('finance', {
       }
       this.vault = {
         id: null,
-        name: 'Финансовый сейф',
+        name: '',
         balance: 0,
         target_amount: 0,
         net_balance: 0,

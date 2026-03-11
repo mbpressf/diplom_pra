@@ -8,6 +8,7 @@ import {
 import { computed } from 'vue'
 import { Doughnut } from 'vue-chartjs'
 
+import { useLocale } from '../composables/useLocale'
 import { useUiStore } from '../store/ui'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
@@ -20,12 +21,13 @@ const props = defineProps({
 })
 
 const uiStore = useUiStore()
+const { fromBase, money } = useLocale()
 
 const chartData = computed(() => ({
   labels: props.items.map((i) => i.category),
   datasets: [
     {
-      data: props.items.map((i) => i.amount),
+      data: props.items.map((i) => fromBase(i.amount)),
       backgroundColor: props.items.map((i) => i.color),
       borderWidth: 0,
       hoverOffset: 8,
@@ -41,6 +43,13 @@ const options = computed(() => ({
     legend: {
       labels: {
         color: uiStore.theme === 'dark' ? '#e2e8f0' : '#334155',
+      },
+    },
+    tooltip: {
+      callbacks: {
+        label(context) {
+          return `${context.label}: ${money(props.items[context.dataIndex]?.amount || 0)}`
+        },
       },
     },
   },

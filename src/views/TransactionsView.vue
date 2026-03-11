@@ -1,7 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { useLocale } from '../composables/useLocale'
 import DateFilter from '../components/DateFilter.vue'
 import TransactionForm from '../components/TransactionForm.vue'
 import { useFinanceStore } from '../store/finance'
@@ -9,24 +10,29 @@ import { useFinanceStore } from '../store/finance'
 const financeStore = useFinanceStore()
 const importInput = ref(null)
 const router = useRouter()
+const { t, money, shortDate, uiStore } = useLocale()
 
-const commonCategories = [
-  { name: 'Зарплата', color: '#22C55E' },
-  { name: 'Подработка', color: '#10B981' },
-  { name: 'Инвестиции', color: '#0EA5E9' },
-  { name: 'Продукты', color: '#EF4444' },
-  { name: 'Кафе и рестораны', color: '#F97316' },
-  { name: 'Транспорт', color: '#3B82F6' },
-  { name: 'Жилье', color: '#8B5CF6' },
-  { name: 'Коммунальные услуги', color: '#6366F1' },
+const commonCategoryPresets = [
+  { names: { ru: 'Зарплата', en: 'Salary' }, aliases: ['зарплата', 'salary'], color: '#22C55E' },
+  { names: { ru: 'Подработка', en: 'Side hustle' }, aliases: ['подработка', 'side hustle'], color: '#10B981' },
+  { names: { ru: 'Инвестиции', en: 'Investments' }, aliases: ['инвестиции', 'investments'], color: '#0EA5E9' },
+  { names: { ru: 'Продукты', en: 'Groceries' }, aliases: ['продукты', 'groceries'], color: '#EF4444' },
+  { names: { ru: 'Кафе и рестораны', en: 'Dining out' }, aliases: ['кафе и рестораны', 'dining out'], color: '#F97316' },
+  { names: { ru: 'Транспорт', en: 'Transport' }, aliases: ['транспорт', 'transport'], color: '#3B82F6' },
+  { names: { ru: 'Жилье', en: 'Housing' }, aliases: ['жилье', 'housing'], color: '#8B5CF6' },
+  { names: { ru: 'Коммунальные услуги', en: 'Utilities' }, aliases: ['коммунальные услуги', 'utilities'], color: '#6366F1' },
 ]
 
-function formatMoney(value) {
-  return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(value)
-}
+const localizedCommonCategories = computed(() =>
+  commonCategoryPresets.map((item) => ({
+    name: item.names[uiStore.locale],
+    color: item.color,
+    aliases: item.aliases,
+  })),
+)
 
 function typeLabel(type) {
-  return type === 'income' ? 'Доход' : 'Расход'
+  return type === 'income' ? t('income') : t('expense')
 }
 
 async function onSubmit(payload) {
@@ -58,9 +64,9 @@ async function onImport(event) {
 
 async function addCommonCategories() {
   const existing = new Set(financeStore.categories.map((item) => item.name.trim().toLowerCase()))
-  for (const category of commonCategories) {
-    if (!existing.has(category.name.trim().toLowerCase())) {
-      await financeStore.addCategory(category)
+  for (const category of localizedCommonCategories.value) {
+    if (!category.aliases.some((alias) => existing.has(alias))) {
+      await financeStore.addCategory({ name: category.name, color: category.color })
     }
   }
 }
@@ -71,40 +77,40 @@ async function addCommonCategories() {
     <article class="glass rounded-[28px] border border-white/20 p-5 shadow-card">
       <div class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div>
-          <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Лента операций</h1>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">{{ t('transactionsTitle') }}</h1>
           <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Добавляйте доходы и расходы, а свободный баланс держите отдельно от сейфа. Так легче не проедать накопления.
+            {{ t('transactionsText') }}
           </p>
         </div>
         <div class="grid gap-3 sm:grid-cols-2">
           <div class="rounded-3xl border border-brand-500/20 bg-brand-500/10 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Можно тратить</p>
-            <p class="mt-2 text-xl font-semibold text-brand-700 dark:text-brand-100">{{ formatMoney(financeStore.vault.available_to_spend || 0) }}</p>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">{{ t('transactionsCanSpend') }}</p>
+            <p class="mt-2 text-xl font-semibold text-brand-700 dark:text-brand-100">{{ money(financeStore.vault.available_to_spend || 0) }}</p>
           </div>
           <div class="rounded-3xl border border-emerald-400/25 bg-emerald-500/10 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">В сейфе</p>
-            <p class="mt-2 text-xl font-semibold text-accent">{{ formatMoney(financeStore.vault.balance || 0) }}</p>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">{{ t('transactionsInSafe') }}</p>
+            <p class="mt-2 text-xl font-semibold text-accent">{{ money(financeStore.vault.balance || 0) }}</p>
           </div>
         </div>
       </div>
     </article>
 
     <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-      <button class="rounded-2xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-brand-500" @click="exportCsv">Экспорт CSV</button>
-      <button class="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-emerald-600" @click="triggerImport">Импорт CSV</button>
+      <button class="rounded-2xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-brand-500" @click="exportCsv">{{ t('exportCsv') }}</button>
+      <button class="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-emerald-600" @click="triggerImport">{{ t('importCsv') }}</button>
       <input ref="importInput" type="file" accept=".csv" class="hidden" @change="onImport" />
     </div>
 
     <DateFilter @apply="applyFilter" />
     <article v-if="financeStore.categories.length === 0" class="glass rounded-xl2 p-4 shadow-card">
-      <h2 class="text-lg font-semibold">Нет категорий</h2>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Сначала создайте хотя бы одну категорию, чтобы добавлять доходы и расходы.</p>
+      <h2 class="text-lg font-semibold">{{ t('noCategoriesTitle') }}</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ t('noCategoriesText') }}</p>
       <div class="mt-3 flex flex-wrap gap-2">
         <button class="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600" @click="addCommonCategories">
-          Добавить частые категории
+          {{ t('addCommonCategories') }}
         </button>
         <button class="rounded-lg border border-softgray px-4 py-2 text-sm font-semibold transition hover:bg-white dark:hover:bg-slate-800" @click="router.push('/categories')">
-          Перейти в категории
+          {{ t('goToCategories') }}
         </button>
       </div>
     </article>
@@ -119,14 +125,14 @@ async function addCommonCategories() {
         <div class="flex items-start justify-between gap-3">
           <div>
             <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">{{ item.category?.name }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ item.date }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ shortDate(item.date) }}</p>
           </div>
           <span :class="item.type === 'income' ? 'text-income' : 'text-expense'" class="text-sm font-semibold">{{ typeLabel(item.type) }}</span>
         </div>
-        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">{{ item.description || 'Без описания' }}</p>
+        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">{{ item.description || t('noDescription') }}</p>
         <div class="mt-4 flex items-center justify-between gap-3">
-          <p class="text-lg font-semibold text-slate-900 dark:text-slate-50">{{ formatMoney(item.amount) }}</p>
-          <button class="rounded-xl bg-red-500/10 px-3 py-2 text-sm font-medium text-expense transition hover:bg-red-500/20" @click="onDelete(item.id)">Удалить</button>
+          <p class="text-lg font-semibold text-slate-900 dark:text-slate-50">{{ money(item.amount) }}</p>
+          <button class="rounded-xl bg-red-500/10 px-3 py-2 text-sm font-medium text-expense transition hover:bg-red-500/20" @click="onDelete(item.id)">{{ t('delete') }}</button>
         </div>
       </article>
     </div>
@@ -135,25 +141,25 @@ async function addCommonCategories() {
       <table class="min-w-full text-sm">
         <thead class="bg-slate-200/50 dark:bg-slate-800/50">
           <tr>
-            <th class="px-4 py-3 text-left">Дата</th>
-            <th class="px-4 py-3 text-left">Тип</th>
-            <th class="px-4 py-3 text-left">Категория</th>
-            <th class="px-4 py-3 text-left">Описание</th>
-            <th class="px-4 py-3 text-left">Сумма</th>
+            <th class="px-4 py-3 text-left">{{ t('date') }}</th>
+            <th class="px-4 py-3 text-left">{{ t('type') }}</th>
+            <th class="px-4 py-3 text-left">{{ t('category') }}</th>
+            <th class="px-4 py-3 text-left">{{ t('description') }}</th>
+            <th class="px-4 py-3 text-left">{{ t('amount') }}</th>
             <th class="px-4 py-3"></th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="item in financeStore.transactions" :key="item.id" class="border-t border-slate-200/70 transition hover:bg-white/50 dark:border-slate-700 dark:hover:bg-slate-800/60">
-            <td class="px-4 py-3">{{ item.date }}</td>
+            <td class="px-4 py-3">{{ shortDate(item.date) }}</td>
             <td class="px-4 py-3">
               <span :class="item.type === 'income' ? 'text-income' : 'text-expense'" class="font-semibold">{{ typeLabel(item.type) }}</span>
             </td>
             <td class="px-4 py-3">{{ item.category?.name }}</td>
-            <td class="px-4 py-3">{{ item.description || '-' }}</td>
-            <td class="px-4 py-3 font-semibold">{{ formatMoney(item.amount) }}</td>
+            <td class="px-4 py-3">{{ item.description || t('noDescription') }}</td>
+            <td class="px-4 py-3 font-semibold">{{ money(item.amount) }}</td>
             <td class="px-4 py-3 text-right">
-              <button class="rounded-md px-2 py-1 text-expense transition hover:bg-red-100 dark:hover:bg-red-950" @click="onDelete(item.id)">Удалить</button>
+              <button class="rounded-md px-2 py-1 text-expense transition hover:bg-red-100 dark:hover:bg-red-950" @click="onDelete(item.id)">{{ t('delete') }}</button>
             </td>
           </tr>
         </tbody>

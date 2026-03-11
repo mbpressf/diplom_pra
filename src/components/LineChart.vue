@@ -12,6 +12,7 @@ import {
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 
+import { useLocale } from '../composables/useLocale'
 import { useUiStore } from '../store/ui'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler)
@@ -24,21 +25,22 @@ const props = defineProps({
 })
 
 const uiStore = useUiStore()
+const { t, fromBase, money, displayMoney } = useLocale()
 
 const chartData = computed(() => ({
   labels: props.items.map((i) => i.month),
   datasets: [
     {
-      label: 'Доход',
-      data: props.items.map((i) => i.income),
+      label: t('chartIncome'),
+      data: props.items.map((i) => fromBase(i.income)),
       borderColor: '#22c55e',
       backgroundColor: 'rgba(34, 197, 94, 0.2)',
       fill: true,
       tension: 0.35,
     },
     {
-      label: 'Расход',
-      data: props.items.map((i) => i.expense),
+      label: t('chartExpense'),
+      data: props.items.map((i) => fromBase(i.expense)),
       borderColor: '#ef4444',
       backgroundColor: 'rgba(239, 68, 68, 0.18)',
       fill: true,
@@ -64,6 +66,13 @@ const options = computed(() => {
           color: textColor,
         },
       },
+      tooltip: {
+        callbacks: {
+          label(context) {
+            return `${context.dataset.label}: ${money(props.items[context.dataIndex]?.[context.datasetIndex === 0 ? 'income' : 'expense'] || 0)}`
+          },
+        },
+      },
     },
     scales: {
       x: {
@@ -77,6 +86,9 @@ const options = computed(() => {
       y: {
         ticks: {
           color: textColor,
+          callback(value) {
+            return displayMoney(value)
+          },
         },
         grid: {
           color: gridColor,
