@@ -144,5 +144,15 @@ export const useOrgStore = defineStore('orgs', {
       const filename = parseFilenameFromHeaders(response.headers, 'org-report.pdf')
       triggerBlobDownload(response.data, filename)
     },
+    clear() {
+      this.organizations = []
+      this.reports = []
+      this.dashboard = null
+      this.selectedOrgId = null
+      this.loading = false
+      this.dashboardLoading = false
+      this.reportsLoading = false
+      localStorage.removeItem(ORG_SELECTED_KEY)
+    },
   },
 })

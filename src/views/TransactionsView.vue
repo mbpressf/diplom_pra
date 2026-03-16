@@ -10,26 +10,20 @@ import { useFinanceStore } from '../store/finance'
 const financeStore = useFinanceStore()
 const importInput = ref(null)
 const router = useRouter()
-const { t, money, shortDate, uiStore } = useLocale()
+const { t, money, shortDate } = useLocale()
 
 const commonCategoryPresets = [
-  { names: { ru: 'Зарплата', en: 'Salary' }, aliases: ['зарплата', 'salary'], color: '#22C55E' },
-  { names: { ru: 'Подработка', en: 'Side hustle' }, aliases: ['подработка', 'side hustle'], color: '#10B981' },
-  { names: { ru: 'Инвестиции', en: 'Investments' }, aliases: ['инвестиции', 'investments'], color: '#0EA5E9' },
-  { names: { ru: 'Продукты', en: 'Groceries' }, aliases: ['продукты', 'groceries'], color: '#EF4444' },
-  { names: { ru: 'Кафе и рестораны', en: 'Dining out' }, aliases: ['кафе и рестораны', 'dining out'], color: '#F97316' },
-  { names: { ru: 'Транспорт', en: 'Transport' }, aliases: ['транспорт', 'transport'], color: '#3B82F6' },
-  { names: { ru: 'Жилье', en: 'Housing' }, aliases: ['жилье', 'housing'], color: '#8B5CF6' },
-  { names: { ru: 'Коммунальные услуги', en: 'Utilities' }, aliases: ['коммунальные услуги', 'utilities'], color: '#6366F1' },
+  { name: 'Зарплата', aliases: ['зарплата'], color: '#22C55E' },
+  { name: 'Подработка', aliases: ['подработка'], color: '#10B981' },
+  { name: 'Инвестиции', aliases: ['инвестиции'], color: '#0EA5E9' },
+  { name: 'Продукты', aliases: ['продукты'], color: '#EF4444' },
+  { name: 'Кафе и рестораны', aliases: ['кафе и рестораны'], color: '#F97316' },
+  { name: 'Транспорт', aliases: ['транспорт'], color: '#3B82F6' },
+  { name: 'Жилье', aliases: ['жилье'], color: '#8B5CF6' },
+  { name: 'Коммунальные услуги', aliases: ['коммунальные услуги'], color: '#6366F1' },
 ]
 
-const localizedCommonCategories = computed(() =>
-  commonCategoryPresets.map((item) => ({
-    name: item.names[uiStore.locale],
-    color: item.color,
-    aliases: item.aliases,
-  })),
-)
+const localizedCommonCategories = computed(() => commonCategoryPresets)
 
 function typeLabel(type) {
   return type === 'income' ? t('income') : t('expense')

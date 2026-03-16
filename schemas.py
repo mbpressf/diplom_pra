@@ -7,11 +7,22 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
+    account_type: Literal["individual", "organization"] = "individual"
+    organization_name: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    organization_industry: Optional[str] = Field(default=None, max_length=120)
 
     @field_validator("email")
     @classmethod
     def normalize_email(cls, value: EmailStr) -> str:
         return value.strip().lower()
+
+    @field_validator("organization_name")
+    @classmethod
+    def normalize_org_name(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        normalized = value.strip()
+        return normalized or None
 
 
 class UserLogin(BaseModel):
@@ -32,8 +43,16 @@ class Token(BaseModel):
 class UserOut(BaseModel):
     id: int
     email: str
+    account_type: Literal["individual", "organization"] = "individual"
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserMeOut(BaseModel):
+    id: int
+    email: str
+    account_type: Literal["individual", "organization"]
+    has_organizations: bool
 
 
 class CategoryBase(BaseModel):

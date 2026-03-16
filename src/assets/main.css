@@ -6,22 +6,22 @@
 
 :root {
   color-scheme: light;
-  --app-bg: #eef4fb;
-  --app-bg-secondary: #d8e6f7;
+  --app-bg: #f3f6fb;
+  --app-bg-secondary: #e6edf7;
   --app-text: #0f172a;
-  --app-muted: #475569;
-  --panel-bg: rgba(255, 255, 255, 0.72);
-  --panel-border: rgba(255, 255, 255, 0.48);
+  --app-muted: #334155;
+  --panel-bg: rgba(255, 255, 255, 0.86);
+  --panel-border: rgba(148, 163, 184, 0.32);
 }
 
 html.dark {
   color-scheme: dark;
-  --app-bg: #050b16;
-  --app-bg-secondary: #09162b;
+  --app-bg: #0b1220;
+  --app-bg-secondary: #111b30;
   --app-text: #e2e8f0;
   --app-muted: #94a3b8;
-  --panel-bg: rgba(7, 15, 28, 0.62);
-  --panel-border: rgba(148, 163, 184, 0.16);
+  --panel-bg: rgba(10, 18, 34, 0.74);
+  --panel-border: rgba(71, 85, 105, 0.4);
 }
 
 body {
@@ -47,17 +47,16 @@ h3,
 .app-bg {
   position: relative;
   background:
-    radial-gradient(circle at 8% 10%, rgba(29, 78, 216, 0.22), transparent 28%),
-    radial-gradient(circle at 82% 12%, rgba(16, 185, 129, 0.16), transparent 24%),
-    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.09), transparent 38%),
+    radial-gradient(circle at 12% 0%, rgba(30, 64, 175, 0.12), transparent 34%),
+    radial-gradient(circle at 88% 4%, rgba(14, 116, 144, 0.1), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.12)),
     linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-secondary) 100%);
 }
 
 .dark .app-bg {
   background:
-    radial-gradient(circle at 9% 10%, rgba(37, 99, 235, 0.28), transparent 26%),
-    radial-gradient(circle at 83% 12%, rgba(16, 185, 129, 0.15), transparent 22%),
-    radial-gradient(circle at 52% 0%, rgba(14, 165, 233, 0.12), transparent 34%),
+    radial-gradient(circle at 12% 0%, rgba(37, 99, 235, 0.22), transparent 30%),
+    radial-gradient(circle at 88% 4%, rgba(14, 165, 233, 0.16), transparent 26%),
     linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-secondary) 100%);
 }
 
@@ -65,7 +64,30 @@ h3,
   background: var(--panel-bg);
   border-color: var(--panel-border);
   color: var(--app-text);
-  @apply backdrop-blur-2xl;
+  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.08);
+  @apply backdrop-blur-xl;
+}
+
+.bank-card {
+  border-color: rgba(148, 163, 184, 0.26);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.dark .bank-card {
+  background: rgba(10, 18, 34, 0.78);
+  border-color: rgba(71, 85, 105, 0.46);
+}
+
+.bank-hero {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(244, 247, 253, 0.92)),
+    radial-gradient(circle at 0% 0%, rgba(30, 64, 175, 0.08), transparent 40%);
+}
+
+.dark .bank-hero {
+  background:
+    linear-gradient(135deg, rgba(10, 18, 34, 0.92), rgba(15, 23, 42, 0.9)),
+    radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.16), transparent 40%);
 }
 
 /* Глобальная читабельность элементов формы в темной теме. */
@@ -91,7 +113,7 @@ p {
   position: absolute;
   border-radius: 9999px;
   filter: blur(14px);
-  opacity: 0.45;
+  opacity: 0.32;
   animation: orbFloat 18s ease-in-out infinite;
 }
 
@@ -100,7 +122,7 @@ p {
   left: -80px;
   height: 300px;
   width: 300px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.28) 0%, rgba(59, 130, 246, 0) 70%);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 72%);
 }
 
 .ambient-orb-b {
@@ -108,7 +130,7 @@ p {
   top: 20%;
   height: 340px;
   width: 340px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0) 72%);
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0) 72%);
   animation-duration: 22s;
 }
 
@@ -116,11 +138,11 @@ p {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
   background-size: 72px 72px;
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent);
-  opacity: 0.55;
+  opacity: 0.42;
 }
 
 .dashboard-hero {

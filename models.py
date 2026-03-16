@@ -10,6 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    account_type = Column(String, nullable=False, default="individual")  # individual | organization
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")

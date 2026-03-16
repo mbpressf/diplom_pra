@@ -3,6 +3,7 @@ from datetime import date, timedelta
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import inspect, text
 
 from auth_utils import get_password_hash
 from database import Base, SessionLocal, engine
@@ -26,6 +27,7 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+    ensure_runtime_migrations()
     seed_example_data()
     ensure_default_vaults()
     deduplicate_categories()
@@ -51,7 +53,11 @@ def seed_example_data():
         if db.query(User).count() > 0:
             return
 
-        demo_user = User(email="demo@example.com", hashed_password=get_password_hash("demo1234"))
+        demo_user = User(
+            email="demo@example.com",
+            hashed_password=get_password_hash("demo1234"),
+            account_type="individual",
+        )
         db.add(demo_user)
         db.flush()
 
@@ -121,3 +127,15 @@ def deduplicate_categories():
         db.commit()
     finally:
         db.close()
+
+
+def ensure_runtime_migrations():
+    """Легкая миграция без Alembic для существующих инсталляций SQLite."""
+    with engine.begin() as connection:
+        inspector = inspect(connection)
+        if "users" not in inspector.get_table_names():
+            return
+
+        user_columns = {column["name"] for column in inspector.get_columns("users")}
+        if "account_type" not in user_columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN account_type VARCHAR NOT NULL DEFAULT 'individual'"))

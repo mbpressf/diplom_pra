@@ -4,24 +4,34 @@ import { RouterView } from 'vue-router'
 
 import { useLocale } from './composables/useLocale'
 import AppHeader from './components/AppHeader.vue'
-import LanguageCurrencySwitcher from './components/LanguageCurrencySwitcher.vue'
 import MobileTabBar from './components/MobileTabBar.vue'
 import { useAuthStore } from './store/auth'
 import { useFinanceStore } from './store/finance'
+import { useOrgStore } from './store/orgs'
 import { useUiStore } from './store/ui'
 
 const authStore = useAuthStore()
 const financeStore = useFinanceStore()
+const orgStore = useOrgStore()
 const uiStore = useUiStore()
 const { t } = useLocale()
 
-const isAuthed = computed(() => !!authStore.token)
+const isAuthed = computed(() => authStore.isAuthed)
 
 onMounted(async () => {
   uiStore.initPreferences()
   if (authStore.token) {
     try {
-      await financeStore.bootstrap()
+      await authStore.loadProfile()
+    } catch {
+      return
+    }
+    try {
+      if (authStore.accountType === 'organization') {
+        await orgStore.fetchOrganizations()
+      } else {
+        await financeStore.bootstrap()
+      }
     } catch {
       // Не блокируем рендер приложения, если часть данных временно недоступна.
     }
@@ -41,9 +51,6 @@ onMounted(async () => {
       class="relative z-[1] mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8"
       :class="isAuthed ? 'pb-28 md:pb-16' : 'pb-12'"
     >
-      <div v-if="!isAuthed" class="mb-4 flex justify-end">
-        <LanguageCurrencySwitcher />
-      </div>
       <RouterView v-slot="{ Component }">
         <Transition name="route-fade" mode="out-in">
           <component :is="Component" />

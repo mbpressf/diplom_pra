@@ -1,11 +1,7 @@
 import { computed } from 'vue'
 
 import {
-  convertFromRub,
-  convertToRub,
   formatMoneyDisplay,
-  formatMoneyFromRub,
-  formatRateValue,
   formatShortDate,
   tFor,
 } from '../utils/locale'
@@ -14,35 +10,31 @@ import { useUiStore } from '../store/ui'
 export function useLocale() {
   const uiStore = useUiStore()
 
-  const locale = computed(() => uiStore.locale)
-  const currencyCode = computed(() => (uiStore.locale === 'en' ? 'USD' : 'RUB'))
+  const locale = computed(() => 'ru')
+  const currencyCode = computed(() => 'RUB')
 
   function t(key, params) {
-    return tFor(uiStore.locale, key, params)
+    return tFor('ru', key, params)
   }
 
   function money(amount) {
-    return formatMoneyFromRub(amount, uiStore.locale, uiStore.usdToRubRate)
+    return formatMoneyDisplay(amount, 'ru', 'RUB')
   }
 
   function displayMoney(amount) {
-    return formatMoneyDisplay(amount, uiStore.locale)
+    return formatMoneyDisplay(amount, 'ru', 'RUB')
   }
 
   function fromBase(amount) {
-    return convertFromRub(amount, uiStore.locale, uiStore.usdToRubRate)
+    return Number(amount) || 0
   }
 
   function toBase(amount) {
-    return convertToRub(amount, uiStore.locale, uiStore.usdToRubRate)
-  }
-
-  function rateValue(rate) {
-    return formatRateValue(rate, uiStore.locale)
+    return Number(amount) || 0
   }
 
   function shortDate(dateString) {
-    return formatShortDate(dateString, uiStore.locale)
+    return formatShortDate(dateString, 'ru')
   }
 
   return {
@@ -54,7 +46,6 @@ export function useLocale() {
     displayMoney,
     fromBase,
     toBase,
-    rateValue,
     shortDate,
   }
 }

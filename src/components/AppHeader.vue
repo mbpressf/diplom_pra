@@ -5,27 +5,35 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useLocale } from '../composables/useLocale'
 import { useAuthStore } from '../store/auth'
 import { useFinanceStore } from '../store/finance'
+import { useOrgStore } from '../store/orgs'
 import { useUiStore } from '../store/ui'
-import LanguageCurrencySwitcher from './LanguageCurrencySwitcher.vue'
 
 const authStore = useAuthStore()
 const financeStore = useFinanceStore()
+const orgStore = useOrgStore()
 const uiStore = useUiStore()
 const route = useRoute()
 const router = useRouter()
 const menuOpen = ref(false)
 const { t } = useLocale()
 
-const nav = [
+const personalNav = [
   { to: '/', labelKey: 'navOverview' },
   { to: '/analytics', labelKey: 'navAnalytics' },
-  { to: '/org', labelKey: 'navOrganization' },
-  { to: '/org/reports', labelKey: 'navReports' },
-  { to: '/org/exports', labelKey: 'navExports' },
   { to: '/vault', labelKey: 'navVault' },
   { to: '/transactions', labelKey: 'navTransactions' },
   { to: '/categories', labelKey: 'navCategories' },
+  { to: '/pricing', labelKey: 'navPricing' },
 ]
+
+const orgNav = [
+  { to: '/org', labelKey: 'navOrganization' },
+  { to: '/org/reports', labelKey: 'navReports' },
+  { to: '/org/exports', labelKey: 'navExports' },
+  { to: '/pricing', labelKey: 'navPricing' },
+]
+
+const nav = computed(() => (authStore.accountType === 'organization' ? orgNav : personalNav))
 
 const themeLabel = computed(() => (uiStore.theme === 'dark' ? t('themeLight') : t('themeDark')))
 
@@ -47,15 +55,16 @@ function closeMenu() {
 function logout() {
   authStore.logout()
   financeStore.clear()
-  router.push('/login')
+  orgStore.clear()
+  router.push({ name: 'login' })
 }
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 border-b border-white/10 bg-[linear-gradient(135deg,rgba(5,10,22,0.92),rgba(7,20,38,0.78))] py-2 shadow-[0_10px_60px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
+  <header class="sticky top-0 z-40 border-b border-slate-200/90 bg-white/92 py-2 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-950/88">
     <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-      <RouterLink to="/" class="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/8 px-3 py-2 text-sm font-semibold tracking-[0.16em] text-white transition hover:bg-white/12">
-        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,#2563eb,#06b6d4,#10b981)] text-xs font-bold text-white shadow-[0_10px_25px_rgba(14,165,233,0.35)]">Ф</span>
+      <RouterLink to="/" class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold tracking-[0.12em] text-slate-900 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,#1d4ed8,#0ea5e9)] text-xs font-bold text-white shadow-[0_10px_20px_rgba(37,99,235,0.25)]">Ф</span>
         {{ t('brand') }}
       </RouterLink>
 
@@ -65,22 +74,21 @@ function logout() {
           :key="item.to"
           :to="item.to"
           class="whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition"
-          :class="isActive(item.to) ? 'bg-white text-slate-950 shadow-[0_8px_20px_rgba(255,255,255,0.18)]' : 'text-slate-200/85 hover:bg-white/10 hover:text-white'"
+          :class="isActive(item.to) ? 'bg-slate-900 text-white shadow-[0_8px_20px_rgba(15,23,42,0.2)] dark:bg-white dark:text-slate-900' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'"
         >
           {{ t(item.labelKey) }}
         </RouterLink>
       </nav>
 
       <div class="hidden items-center gap-2 lg:flex">
-        <LanguageCurrencySwitcher compact />
         <button
-          class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:-translate-y-0.5 hover:bg-white/10"
+          class="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           @click="uiStore.toggleTheme"
         >
           {{ themeLabel }}
         </button>
         <button
-          class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-slate-100"
+          class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           @click="logout"
         >
           {{ t('logout') }}
@@ -89,13 +97,13 @@ function logout() {
 
       <div class="flex items-center gap-2 lg:hidden">
         <button
-          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10 text-white transition hover:bg-white/15"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-800 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
           @click="uiStore.toggleTheme"
         >
           <span class="text-lg">{{ uiStore.theme === 'dark' ? '☀' : '☾' }}</span>
         </button>
         <button
-          class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10 text-white transition hover:bg-white/15"
+          class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-800 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
           @click="menuOpen = !menuOpen"
         >
           <span class="sr-only">Открыть меню</span>
@@ -108,27 +116,26 @@ function logout() {
 
     <Transition name="route-fade">
       <div v-if="menuOpen" class="fixed inset-0 z-50 lg:hidden" @click="closeMenu">
-        <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"></div>
-        <div class="absolute right-4 top-[72px] w-[min(280px,calc(100vw-2rem))] rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(2,6,23,0.96),rgba(7,15,28,0.92))] p-4 shadow-2xl backdrop-blur-2xl" @click.stop>
+        <div class="absolute inset-0 bg-slate-900/35 backdrop-blur-sm dark:bg-slate-950/65"></div>
+        <div class="absolute right-4 top-[72px] w-[min(300px,calc(100vw-2rem))] rounded-[28px] border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-800 dark:bg-slate-950" @click.stop>
           <div class="grid gap-2">
             <RouterLink
               v-for="item in nav"
               :key="item.to"
               :to="item.to"
-              class="rounded-2xl border border-white/12 px-4 py-3 text-left text-sm font-medium text-slate-100 transition hover:bg-white/10"
-              :class="isActive(item.to) ? 'bg-white text-slate-950' : ''"
+              class="rounded-2xl border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+              :class="isActive(item.to) ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : ''"
             >
               {{ t(item.labelKey) }}
             </RouterLink>
             <button
-              class="rounded-2xl border border-white/12 px-4 py-3 text-left text-sm font-medium text-slate-100 transition hover:bg-white/10"
+              class="rounded-2xl border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
               @click="uiStore.toggleTheme"
             >
               {{ themeLabel }}
             </button>
-            <LanguageCurrencySwitcher />
             <button
-              class="rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+              class="rounded-2xl bg-slate-900 px-4 py-3 text-left text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
               @click="logout"
             >
               {{ t('logout') }}

@@ -1,18 +1,30 @@
 <script setup>
+import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import { useLocale } from '../composables/useLocale'
+import { useAuthStore } from '../store/auth'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const { t } = useLocale()
 
-const nav = [
+const personalNav = [
   { to: '/', labelKey: 'navHomeMobile' },
   { to: '/transactions', labelKey: 'navTransactionsMobile' },
   { to: '/analytics', labelKey: 'navAnalyticsMobile' },
   { to: '/vault', labelKey: 'navVaultMobile' },
-  { to: '/org', labelKey: 'navOrgMobile' },
+  { to: '/pricing', labelKey: 'navPricingMobile' },
 ]
+
+const orgNav = [
+  { to: '/org', labelKey: 'navOrgMobile' },
+  { to: '/org/reports', labelKey: 'navReportsMobile' },
+  { to: '/org/exports', labelKey: 'navExportsMobile' },
+  { to: '/pricing', labelKey: 'navPricingMobile' },
+]
+
+const nav = computed(() => (authStore.accountType === 'organization' ? orgNav : personalNav))
 
 function isActive(path) {
   return route.path === path
@@ -21,13 +33,13 @@ function isActive(path) {
 
 <template>
   <div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-4 pb-4 lg:hidden">
-    <nav class="pointer-events-auto mx-auto grid max-w-xl grid-cols-5 gap-2 rounded-[24px] border border-white/12 bg-[linear-gradient(180deg,rgba(2,6,23,0.94),rgba(7,15,28,0.88))] p-2 shadow-[0_18px_50px_rgba(2,6,23,0.36)] backdrop-blur-2xl">
+    <nav class="pointer-events-auto mx-auto grid max-w-xl gap-2 rounded-[24px] border border-slate-200 bg-white/96 p-2 shadow-[0_18px_50px_rgba(15,23,42,0.14)] backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-950/92" :class="authStore.accountType === 'organization' ? 'grid-cols-4' : 'grid-cols-5'">
       <RouterLink
         v-for="item in nav"
         :key="item.to"
         :to="item.to"
         class="rounded-[18px] px-3 py-3 text-center text-[0.72rem] font-semibold uppercase tracking-[0.14em] transition"
-        :class="isActive(item.to) ? 'bg-white text-slate-950 shadow-[0_10px_24px_rgba(255,255,255,0.12)]' : 'text-slate-200/80 hover:bg-white/10 hover:text-white'"
+        :class="isActive(item.to) ? 'bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.22)] dark:bg-white dark:text-slate-900' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'"
       >
         {{ t(item.labelKey) }}
       </RouterLink>

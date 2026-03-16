@@ -23,6 +23,7 @@ api.interceptors.response.use(
     if (error?.response?.status === 401) {
       localStorage.removeItem('finance_token')
       localStorage.removeItem('finance_cache_v1')
+      localStorage.removeItem('finance_selected_org_id')
 
       if (typeof window !== 'undefined' && !['/login', '/register'].includes(window.location.pathname)) {
         window.location.href = '/login'
