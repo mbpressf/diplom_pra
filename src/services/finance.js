@@ -31,3 +31,15 @@ export const vaultApi = {
   deposit: (payload) => api.post('/vault/deposit', payload),
   withdraw: (payload) => api.post('/vault/withdraw', payload),
 }
+
+export const orgApi = {
+  create: (payload) => api.post('/orgs', payload),
+  join: (payload) => api.post('/orgs/join', payload),
+  listMy: () => api.get('/orgs/me'),
+  dashboard: (orgId, params) => api.get(`/orgs/${orgId}/dashboard`, { params }),
+  generateReport: (orgId, payload) => api.post(`/orgs/${orgId}/reports/generate`, payload),
+  listReports: (orgId) => api.get(`/orgs/${orgId}/reports`),
+  exportUsersCsv: (orgId, params) => api.get(`/orgs/${orgId}/exports/users.csv`, { params, responseType: 'blob' }),
+  exportReportXlsx: (orgId, params) => api.get(`/orgs/${orgId}/exports/report.xlsx`, { params, responseType: 'blob' }),
+  exportReportPdf: (orgId, params) => api.get(`/orgs/${orgId}/exports/report.pdf`, { params, responseType: 'blob' }),
+}

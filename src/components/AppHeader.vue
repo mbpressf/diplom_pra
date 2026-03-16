@@ -19,6 +19,9 @@ const { t } = useLocale()
 const nav = [
   { to: '/', labelKey: 'navOverview' },
   { to: '/analytics', labelKey: 'navAnalytics' },
+  { to: '/org', labelKey: 'navOrganization' },
+  { to: '/org/reports', labelKey: 'navReports' },
+  { to: '/org/exports', labelKey: 'navExports' },
   { to: '/vault', labelKey: 'navVault' },
   { to: '/transactions', labelKey: 'navTransactions' },
   { to: '/categories', labelKey: 'navCategories' },
@@ -56,12 +59,12 @@ function logout() {
         {{ t('brand') }}
       </RouterLink>
 
-      <nav class="hidden items-center gap-2 lg:flex">
+      <nav class="hidden max-w-[calc(100vw-460px)] items-center gap-1 overflow-x-auto lg:flex">
         <RouterLink
           v-for="item in nav"
           :key="item.to"
           :to="item.to"
-          class="rounded-full px-4 py-2 text-sm font-medium transition"
+          class="whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition"
           :class="isActive(item.to) ? 'bg-white text-slate-950 shadow-[0_8px_20px_rgba(255,255,255,0.18)]' : 'text-slate-200/85 hover:bg-white/10 hover:text-white'"
         >
           {{ t(item.labelKey) }}

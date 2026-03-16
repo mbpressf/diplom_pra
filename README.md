@@ -60,6 +60,15 @@
 - `GET /analytics/summary`
 - `GET /analytics/by-category`
 - `GET /analytics/by-month`
+- `POST /orgs`
+- `POST /orgs/join`
+- `GET /orgs/me`
+- `GET /orgs/{id}/dashboard`
+- `POST /orgs/{id}/reports/generate`
+- `GET /orgs/{id}/reports`
+- `GET /orgs/{id}/exports/users.csv`
+- `GET /orgs/{id}/exports/report.xlsx`
+- `GET /orgs/{id}/exports/report.pdf`
 
 Дополнительно:
 - `GET /categories`
@@ -108,6 +117,8 @@ Frontend будет доступен на `http://127.0.0.1:5173`.
 - `docker-compose.home-server.yml`
 - `deploy-home.sh`
 - `update-home.sh`
+- `backup-db.sh`
+- `restore-db.sh`
 
 При необходимости можно поднять оба сервиса через Docker Compose.
 
@@ -128,7 +139,7 @@ Frontend будет доступен на `http://127.0.0.1:5173`.
 ### Первый запуск на домашнем сервере
 
 ```bash
-cd ~/sites/finpotok
+cd ~/CODE/diplom_project_server/diplom_pra
 cp .env.home-server.example .env.home-server
 ```
 
@@ -137,13 +148,24 @@ cp .env.home-server.example .env.home-server
 - `APP_DOMAIN`
 - `JWT_SECRET`
 - `CORS_ORIGINS`
+- `DATABASE_URL` (оставьте `sqlite:////app/data/finance.db`)
+- `BACKUP_DIR` (например `/home/mb_press_f/.finpotok-backups`)
+- `BACKUP_KEEP_DAYS` (например `30`)
 
 Потом:
 
 ```bash
-chmod +x deploy-home.sh update-home.sh
+chmod +x deploy-home.sh update-home.sh backup-db.sh restore-db.sh
 ./deploy-home.sh
 ```
+
+`deploy-home.sh` теперь автоматически:
+
+- делает backup базы перед релизом;
+- хранит backup вне папки проекта (по умолчанию в `~/.finpotok-backups`);
+- проверяет количество транзакций до/после деплоя;
+- откатывает базу из backup, если после релиза база внезапно стала пустой;
+- пытается восстановить базу из последнего backup, если `data/finance.db` случайно удалили.
 
 ### Обновление после изменений
 
@@ -157,6 +179,34 @@ chmod +x deploy-home.sh update-home.sh
 
 ```bash
 BRANCH=main ./update-home.sh
+```
+
+### Регулярные backup (рекомендуется)
+
+Разовый ручной backup:
+
+```bash
+./backup-db.sh
+```
+
+Восстановление из последнего backup:
+
+```bash
+./restore-db.sh
+```
+
+Запуск backup каждые 6 часов через cron:
+
+```bash
+(crontab -l 2>/dev/null; echo "0 */6 * * * cd ~/CODE/diplom_project_server/diplom_pra && ./backup-db.sh >> ~/finpotok-backup.log 2>&1") | crontab -
+```
+
+### Безопасная загрузка проекта по rsync (чтобы не удалить `data`)
+
+Если обновляете код с локальной машины через `rsync --delete`, защищайте папку `data`:
+
+```bash
+rsync -az --delete --filter='P data/' --exclude '.git/' --exclude 'node_modules/' --exclude 'dist/' ./ mb_press_f@100.118.138.85:~/CODE/diplom_project_server/diplom_pra/
 ```
 
 ### Что важно для production

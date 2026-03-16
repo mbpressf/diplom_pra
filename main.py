@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from auth_utils import get_password_hash
 from database import Base, SessionLocal, engine
 from models import Category, SavingsVault, Transaction, User
-from routers import analytics, auth, categories, transactions, vault
+from routers import analytics, auth, categories, orgs, transactions, vault
 
 app = FastAPI(title="Income & Expense Tracker API")
 
@@ -41,6 +41,7 @@ app.include_router(categories.router)
 app.include_router(transactions.router)
 app.include_router(analytics.router)
 app.include_router(vault.router)
+app.include_router(orgs.router)
 
 
 def seed_example_data():
